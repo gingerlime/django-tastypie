@@ -498,7 +498,8 @@ class Resource(object):
         the authorization backend can apply additional row-level permissions
         checking.
         """
-        auth_result = self._meta.authorization.is_authorized(request, object)
+        identifier = self._meta.authentication.get_identifier(request)
+        auth_result = self._meta.authorization.is_authorized(request, object, identifier)
 
         if isinstance(auth_result, HttpResponse):
             raise ImmediateHttpResponse(response=auth_result)
@@ -834,13 +835,14 @@ class Resource(object):
         """
         raise NotImplementedError()
 
-    def apply_authorization_limits(self, request, object_list):
+    def apply_authorization_limits(self, request, object_list_or_bundle):
         """
         Allows the ``Authorization`` class to further limit the object list.
         Also a hook to customize per ``Resource``.
         """
         if hasattr(self._meta.authorization, 'apply_limits'):
-            object_list = self._meta.authorization.apply_limits(request, object_list)
+            identifier = self._meta.authentication.get_identifier(request)
+            object_list = self._meta.authorization.apply_limits(request, object_list_or_bundle, identifier)
 
         return object_list
 
@@ -1777,6 +1779,7 @@ class ModelResource(Resource):
         for key, value in kwargs.items():
             setattr(bundle.obj, key, value)
 
+        bundle = self.apply_authorization_limits(request, bundle)
         bundle = self.full_hydrate(bundle)
 
         # Save FKs just in case.
@@ -1821,6 +1824,7 @@ class ModelResource(Resource):
             except ObjectDoesNotExist:
                 raise NotFound("A model instance matching the provided arguments could not be found.")
 
+        bundle = self.apply_authorization_limits(request, bundle)
         bundle = self.full_hydrate(bundle)
 
         # Save FKs just in case.

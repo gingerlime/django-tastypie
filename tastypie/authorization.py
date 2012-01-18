@@ -11,7 +11,7 @@ class Authorization(object):
         self.resource_meta = instance
         return self
 
-    def is_authorized(self, request, object=None):
+    def is_authorized(self, request, object=None, identifier=None):
         """
         Checks if the user is authorized to perform the request. If ``object``
         is provided, it can do additional row-level checks.
@@ -29,7 +29,7 @@ class ReadOnlyAuthorization(Authorization):
     Only allows GET requests.
     """
 
-    def is_authorized(self, request, object=None):
+    def is_authorized(self, request, object=None, identifier=None):
         """
         Allow any ``GET`` request.
         """
@@ -44,7 +44,7 @@ class DjangoAuthorization(Authorization):
     Uses permission checking from ``django.contrib.auth`` to map ``POST``,
     ``PUT``, and ``DELETE`` to their equivalent django auth permissions.
     """
-    def is_authorized(self, request, object=None):
+    def is_authorized(self, request, object=None, identifier=None):
         # GET is always allowed
         if request.method == 'GET':
             return True
