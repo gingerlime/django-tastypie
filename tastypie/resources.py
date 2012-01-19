@@ -842,9 +842,9 @@ class Resource(object):
         """
         if hasattr(self._meta.authorization, 'apply_limits'):
             identifier = self._meta.authentication.get_identifier(request)
-            object_list = self._meta.authorization.apply_limits(request, object_list_or_bundle, identifier)
+            object_list_or_bundle = self._meta.authorization.apply_limits(request, object_list_or_bundle, identifier)
 
-        return object_list
+        return object_list_or_bundle
 
     def can_create(self):
         """
